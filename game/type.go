@@ -4,11 +4,11 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/YWJSonic/BaseServer/server"
 	"github.com/YWJSonic/GameServer/alien/game/alienattach"
 	"github.com/YWJSonic/GameServer/alien/game/cache"
 	"github.com/YWJSonic/GameServer/catpunch/game/catattach"
 	"github.com/YWJSonic/ServerUtility/igame"
+	"github.com/YWJSonic/ServerUtility/iserver"
 	"github.com/YWJSonic/ServerUtility/playerinfo"
 	"github.com/YWJSonic/ServerUtility/restfult"
 	"github.com/YWJSonic/ServerUtility/socket"
@@ -19,7 +19,7 @@ import (
 
 // Game ...
 type Game struct {
-	Server    *server.Service
+	Server    *iserver.Service
 	Cache     *cache.GameCache
 	IGameRule igame.ISlotRule
 	// ProtocolMap map[string]func(r *http.Request) protocol.IProtocol
