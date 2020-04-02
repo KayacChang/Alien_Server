@@ -6,13 +6,14 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/YWJSonic/GameServer/alien/game/protocol"
-	"github.com/YWJSonic/ServerUtility/code"
-	"github.com/YWJSonic/ServerUtility/httprouter"
-	"github.com/YWJSonic/ServerUtility/igame"
-	"github.com/YWJSonic/ServerUtility/messagehandle"
-	"github.com/YWJSonic/ServerUtility/socket"
+	"server/game/protocol"
+
 	"github.com/gorilla/websocket"
+	"gitlab.fbk168.com/gamedevjp/backend-utility/utility/code"
+	"gitlab.fbk168.com/gamedevjp/backend-utility/utility/httprouter"
+	"gitlab.fbk168.com/gamedevjp/backend-utility/utility/igame"
+	"gitlab.fbk168.com/gamedevjp/backend-utility/utility/messagehandle"
+	"gitlab.fbk168.com/gamedevjp/backend-utility/utility/socket"
 )
 
 func (g *Game) createNewSocket(w http.ResponseWriter, r *http.Request) {

@@ -19,7 +19,7 @@ func GetEnvAsString(key string) string {
 
 func GetEnvAsBool(key string) bool {
 
-	valStr := getEnv(key)
+	valStr := GetEnvAsString(key)
 
 	val, err := strconv.ParseBool(valStr)
 
@@ -32,7 +32,7 @@ func GetEnvAsBool(key string) bool {
 
 func GetEnvAsInt(key string) int {
 
-	valStr := getEnv(key)
+	valStr := GetEnvAsString(key)
 
 	val, err := strconv.ParseInt(valStr, 10, 32)
 

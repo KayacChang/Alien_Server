@@ -3,12 +3,13 @@ package game
 import (
 	"encoding/json"
 
-	"github.com/YWJSonic/GameServer/alien/game/gamerule"
-	"github.com/YWJSonic/ServerUtility/foundation"
-	"github.com/YWJSonic/ServerUtility/foundation/fileload"
-	"github.com/YWJSonic/ServerUtility/iserver"
-	"github.com/YWJSonic/ServerUtility/restfult"
-	"github.com/YWJSonic/ServerUtility/socket"
+	"server/game/gamerule"
+
+	"gitlab.fbk168.com/gamedevjp/backend-utility/utility/foundation"
+	"gitlab.fbk168.com/gamedevjp/backend-utility/utility/foundation/fileload"
+	"gitlab.fbk168.com/gamedevjp/backend-utility/utility/iserver"
+	"gitlab.fbk168.com/gamedevjp/backend-utility/utility/restfult"
+	"gitlab.fbk168.com/gamedevjp/backend-utility/utility/socket"
 )
 
 // NewGameServer ...

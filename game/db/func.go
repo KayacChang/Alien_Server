@@ -3,10 +3,9 @@ package db
 import (
 	"database/sql"
 
-	"github.com/YWJSonic/ServerUtility/code"
-	"github.com/YWJSonic/ServerUtility/dbservice"
-	"github.com/YWJSonic/ServerUtility/foundation"
-	"github.com/YWJSonic/ServerUtility/messagehandle"
+	"gitlab.fbk168.com/gamedevjp/backend-utility/utility/code"
+	"gitlab.fbk168.com/gamedevjp/backend-utility/utility/foundation"
+	"gitlab.fbk168.com/gamedevjp/backend-utility/utility/messagehandle"
 )
 
 // GetSetting get db setting

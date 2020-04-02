@@ -1,8 +1,8 @@
 package gamerule
 
 import (
-	"github.com/YWJSonic/ServerUtility/attach"
-	"github.com/YWJSonic/ServerUtility/igame"
+	attach "gitlab.fbk168.com/gamedevjp/backend-utility/utility/attach"
+	"gitlab.fbk168.com/gamedevjp/backend-utility/utility/igame"
 )
 
 // JackPartBonusx2Index ...
