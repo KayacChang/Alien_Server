@@ -1,6 +1,8 @@
 package alienattach
 
-import "github.com/YWJSonic/ServerUtility/attach"
+import (
+	attach "gitlab.fbk168.com/gamedevjp/backend-utility/utility/attach"
+)
 
 // NewUserAttach ...
 func NewUserAttach(userID int64) *UserAttach {

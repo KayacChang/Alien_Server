@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/YWJSonic/ServerUtility/foundation"
+	"gitlab.fbk168.com/gamedevjp/backend-utility/utility/foundation"
 )
 
 func TestRule_GameRequest(t *testing.T) {
