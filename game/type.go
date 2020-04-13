@@ -80,6 +80,7 @@ func (g *Game) GetUser(userToken string) (*user.Info, *protoc.Error, error) {
 				UserIDStr: "devtest",
 				Kind:      7,
 				DB:        g.Server.DBConn("gamedb"),
+				Redis:     g.Cache,
 			}),
 		}, nil, nil
 	}
@@ -116,6 +117,7 @@ func (g *Game) GetUser(userToken string) (*user.Info, *protoc.Error, error) {
 			UserIDStr: userProto.GetUserId(),
 			Kind:      7,
 			DB:        g.Server.DBConn("gamedb"),
+			Redis:     g.Cache,
 		}),
 	}, nil, nil
 }

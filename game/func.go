@@ -3,14 +3,13 @@ package game
 import (
 	"encoding/json"
 
-	"gitlab.fbk168.com/gamedevjp/alien/server/game/cache"
-	"gitlab.fbk168.com/gamedevjp/alien/server/game/gamerule"
-
 	"github.com/YWJSonic/ServerUtility/foundation"
 	"github.com/YWJSonic/ServerUtility/foundation/fileload"
 	"github.com/YWJSonic/ServerUtility/iserver"
 	"github.com/YWJSonic/ServerUtility/restfult"
 	"github.com/YWJSonic/ServerUtility/socket"
+	"gitlab.fbk168.com/gamedevjp/alien/server/game/cache"
+	"gitlab.fbk168.com/gamedevjp/alien/server/game/gamerule"
 )
 
 // NewGameServer ...
@@ -21,7 +20,9 @@ func NewGameServer(jsStr string) {
 	baseSetting.SetData(config)
 
 	gamejsStr := fileload.Load("./file/gameconfig.json")
-	var gameRule = &gamerule.Rule{}
+	var gameRule = &gamerule.Rule{
+		GameTypeID: config["GameTypeID"].(string),
+	}
 	if err := json.Unmarshal([]byte(gamejsStr), &gameRule); err != nil {
 		panic(err)
 	}
@@ -35,7 +36,6 @@ func NewGameServer(jsStr string) {
 		IGameRule: gameRule,
 		Server:    gameserver,
 		Cache:     cache.NewCache(cacheRedis),
-		// ProtocolMap: protocol.NewProtocolMap(),
 	}
 	gameserver.Restfult = restfult.NewRestfultService()
 	gameserver.Socket = socket.NewSocket()
@@ -51,7 +51,7 @@ func NewGameServer(jsStr string) {
 
 	// start restful service
 	go gameserver.LaunchRestfult(game.RESTfulURLs())
-	go gameserver.LaunchSocket(game.SocketURLs())
+	// go gameserver.LaunchSocket(game.SocketURLs())
 
 	<-gameserver.ShotDown
 }

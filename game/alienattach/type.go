@@ -2,10 +2,13 @@ package alienattach
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 
 	attach "github.com/YWJSonic/ServerUtility/attach"
 	"github.com/YWJSonic/ServerUtility/code"
+	"github.com/YWJSonic/ServerUtility/foundation"
+	"gitlab.fbk168.com/gamedevjp/alien/server/game/cache"
 	"gitlab.fbk168.com/gamedevjp/alien/server/game/db"
 )
 
@@ -14,6 +17,7 @@ type Setting struct {
 	UserIDStr string
 	Kind      int64
 	DB        *sql.DB
+	Redis     *cache.GameCache
 }
 
 // UserAttach ...
@@ -23,6 +27,8 @@ type UserAttach struct {
 	kind      int64
 	db        *sql.DB
 	dataMap   map[int64]map[int64]*attach.Info
+
+	redis *cache.GameCache
 }
 
 // LoadData ...
@@ -31,6 +37,13 @@ func (us *UserAttach) LoadData() {
 	us.dataMap = make(map[int64]map[int64]*attach.Info)
 	//---
 	// redis load data
+	if attcache := us.redis.GetAttach(us.userIDStr, us.kind); attcache != nil {
+		if errMsg := json.Unmarshal(attcache.([]byte), &us.dataMap); errMsg != nil {
+			fmt.Println("errMsg ", errMsg)
+		} else {
+			return
+		}
+	}
 
 	// if fail sql load data
 	result, err := db.GetAttachKind(us.db, us.userIDStr, us.kind)
@@ -45,9 +58,7 @@ func (us *UserAttach) LoadData() {
 			IsDBData: true,
 		}
 		us.SetAttach(att)
-		// us.dataMap[us.kind][att.Types] = &att
 	}
-	fmt.Println("done")
 }
 
 // Get ...
@@ -106,6 +117,11 @@ func (us *UserAttach) SetAttach(info *attach.Info) {
 
 // Save ...
 func (us *UserAttach) Save() {
+	// set to redis
+	attStr := foundation.JSONToString(us.dataMap)
+	us.redis.SetAttach(us.userIDStr, us.kind, attStr)
+
+	// set to db
 	quarys := []string{}
 	for kind, typeAtt := range us.dataMap {
 		for t, att := range typeAtt {

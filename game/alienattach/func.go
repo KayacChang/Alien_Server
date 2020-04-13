@@ -9,6 +9,7 @@ func NewAttach(attSetting Setting) attach.IAttach {
 		kind:      attSetting.Kind,
 		db:        attSetting.DB,
 		dataMap:   make(map[int64]map[int64]*attach.Info),
+		redis:     attSetting.Redis,
 	}
 	// attach.InitData(userID)
 	return attach
