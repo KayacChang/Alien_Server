@@ -4,16 +4,20 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
-	"server/game/protocol"
-
+	"github.com/YWJSonic/ServerUtility/code"
+	"github.com/YWJSonic/ServerUtility/foundation"
+	"github.com/YWJSonic/ServerUtility/httprouter"
+	"github.com/YWJSonic/ServerUtility/igame"
+	"github.com/YWJSonic/ServerUtility/messagehandle"
+	"github.com/YWJSonic/ServerUtility/socket"
 	"github.com/gorilla/websocket"
-	"gitlab.fbk168.com/gamedevjp/backend-utility/utility/code"
-	"gitlab.fbk168.com/gamedevjp/backend-utility/utility/httprouter"
-	"gitlab.fbk168.com/gamedevjp/backend-utility/utility/igame"
-	"gitlab.fbk168.com/gamedevjp/backend-utility/utility/messagehandle"
-	"gitlab.fbk168.com/gamedevjp/backend-utility/utility/socket"
+	"gitlab.fbk168.com/gamedevjp/alien/server/game/db"
+	"gitlab.fbk168.com/gamedevjp/alien/server/game/gamerule"
+	"gitlab.fbk168.com/gamedevjp/alien/server/game/protoc"
+	"gitlab.fbk168.com/gamedevjp/cat/server/game/constants"
 )
 
 func (g *Game) createNewSocket(w http.ResponseWriter, r *http.Request) {
@@ -46,33 +50,34 @@ func (g *Game) SocketMessageHandle(msg socket.Message) error {
 }
 
 func (g *Game) gameinit(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	// var result = make(map[string]interface{})
-	var proto protocol.InitRequest
+	var proto protoc.InitRequest
 	proto.InitData(r)
 
 	// get user
-	user, _, err := g.GetUser(proto.Token)
+	user, errproto, err := g.GetUser(proto.Token)
+	if errproto != nil {
+		errMsg := messagehandle.New()
+		errMsg.ErrorCode = code.GetUserError
+		errMsg.Msg = fmt.Sprintf("%d : %s:", errproto.GetCode(), errproto.GetMessage())
+		g.Server.HTTPResponse(w, "", errMsg)
+		return
+	}
 	if err != nil {
-		err := messagehandle.New()
-		err.ErrorCode = code.NoThisPlayer
-		g.Server.HTTPResponse(w, "", err)
+		errMsg := messagehandle.New()
+		errMsg.ErrorCode = code.GetUserError
+		errMsg.Msg = err.Error()
+		g.Server.HTTPResponse(w, "", errMsg)
 		return
 	}
 
 	user.LoadAttach()
 	result := map[string]interface{}{
-		"attach": map[string]interface{}{
-			"PlayerID":            user.UserGameInfo.ID,
-			"Kind":                7,
-			"JackPartBonusPoolx2": user.IAttach.Get(7, 0).GetIValue(),
-			"JackPartBonusPoolx3": user.IAttach.Get(7, 1).GetIValue(),
-			"JackPartBonusPoolx5": user.IAttach.Get(7, 2).GetIValue(),
-		},
+		"attach":  g.IGameRule.(*gamerule.Rule).GetGameAttach(user),
 		"betrate": g.IGameRule.GetBetSetting(),
 		"player": map[string]interface{}{
-			"gameaccount": g.IGameRule.GetGameTypeID(),
-			"id":          user.UserGameInfo.IDStr,
-			"money":       user.UserGameInfo.Money,
+			"gametypeid": g.IGameRule.GetGameTypeID(),
+			"id":         user.UserGameInfo.IDStr,
+			"money":      user.UserGameInfo.GetMoney(),
 		},
 		"reel": g.IGameRule.GetReel(),
 	}
@@ -84,19 +89,35 @@ func (g *Game) gameinit(w http.ResponseWriter, r *http.Request, ps httprouter.Pa
 }
 
 func (g *Game) gameresult(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	var proto protocol.GameRequest
+	var proto protoc.GameRequest
+	var oldMoney int64
 	proto.InitData(r)
 
-	user, _, err := g.GetUser(proto.Token)
-	if err != nil {
-		err := messagehandle.New()
-		err.Msg = "GameTypeError"
-		err.ErrorCode = code.GameTypeError
-		// messagehandle.ErrorLogPrintln("GetPlayerInfoByPlayerID-2", err, token, betIndex, betMoney)
-		g.Server.HTTPResponse(w, "", err)
+	if proto.GameTypeID != g.IGameRule.GetGameTypeID() {
+		errMsg := messagehandle.New()
+		errMsg.ErrorCode = code.GameTypeError
+		errMsg.Msg = "GameTypeError"
+		g.Server.HTTPResponse(w, "", errMsg)
 		return
 	}
-	if user.UserGameInfo.Money < g.IGameRule.GetBetMoney(proto.BetIndex) {
+
+	user, errproto, err := g.GetUser(proto.Token)
+	if errproto != nil {
+		errMsg := messagehandle.New()
+		errMsg.ErrorCode = code.NewOrderError
+		errMsg.Msg = fmt.Sprintf("%d : %s:", errproto.GetCode(), errproto.GetMessage())
+		g.Server.HTTPResponse(w, "", errMsg)
+		return
+	}
+	if err != nil {
+		errMsg := messagehandle.New()
+		errMsg.ErrorCode = code.GetUserError
+		errMsg.Msg = err.Error()
+		g.Server.HTTPResponse(w, "", errMsg)
+		return
+	}
+
+	if user.UserGameInfo.GetMoney() < g.IGameRule.GetBetMoney(proto.BetIndex) {
 		err := messagehandle.New()
 		err.Msg = "NoMoneyToBet"
 		err.ErrorCode = code.NoMoneyToBet
@@ -105,19 +126,18 @@ func (g *Game) gameresult(w http.ResponseWriter, r *http.Request, ps httprouter.
 	}
 
 	order, errproto, err := g.NewOrder(proto.Token, user.UserGameInfo.IDStr, g.IGameRule.GetBetMoney(proto.BetIndex))
-
 	if errproto != nil {
-		err := messagehandle.New()
-		err.Msg = errproto.String()
-		err.ErrorCode = code.ULGInfoFormatError
-		g.Server.HTTPResponse(w, "", err)
+		errMsg := messagehandle.New()
+		errMsg.Msg = fmt.Sprintf("%d : %s:", errproto.GetCode(), errproto.GetMessage())
+		errMsg.ErrorCode = code.NewOrderError
+		g.Server.HTTPResponse(w, "", errMsg)
 		return
 	}
 	if err != nil {
-		err := messagehandle.New()
-		err.Msg = "ULGInfoFormatError"
-		err.ErrorCode = code.ULGInfoFormatError
-		g.Server.HTTPResponse(w, "", err)
+		errMsg := messagehandle.New()
+		errMsg.Msg = err.Error()
+		errMsg.ErrorCode = code.NewOrderError
+		g.Server.HTTPResponse(w, "", errMsg)
 		return
 	}
 
@@ -132,8 +152,10 @@ func (g *Game) gameresult(w http.ResponseWriter, r *http.Request, ps httprouter.
 
 	result := g.IGameRule.GameRequest(RuleRequest)
 	for _, att := range result.Attach {
-		user.IAttach.SetValue(att.GetKind(), att.GetTypes(), att.GetSValue(), att.GetIValue())
+		// user.IAttach.SetValue(att.GetKind(), att.GetTypes(), att.GetSValue(), att.GetIValue())
+		user.IAttach.SetAttach(att)
 	}
+	user.IAttach.Save()
 	user.UserGameInfo.SumMoney(result.Totalwinscore - result.BetMoney)
 
 	resultMap := make(map[string]interface{})
@@ -153,6 +175,26 @@ func (g *Game) gameresult(w http.ResponseWriter, r *http.Request, ps httprouter.
 	if ok && respin == 1 {
 		resultMap["isrespin"] = 1
 		resultMap["respin"] = result.GameResult["respin"]
+	}
+	msg := foundation.JSONToString(resultMap)
+	msg = strings.ReplaceAll(msg, "\"", "\\\"")
+	errMsg := db.SetLog(
+		g.Server.DBConn("logdb"),
+		user.UserGameInfo.IDStr,
+		0,
+		time.Now().Unix(),
+		constants.ActionGameResult,
+		oldMoney,
+		user.UserGameInfo.GetMoney(),
+		result.Totalwinscore,
+		"",
+		"",
+		"",
+		msg,
+	)
+	if errMsg.ErrorCode != code.OK {
+		g.Server.HTTPResponse(w, resultMap, errMsg)
+		return
 	}
 
 	g.EndOrder(proto.Token, order)

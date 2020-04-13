@@ -4,10 +4,9 @@ import (
 	"encoding/json"
 	"log"
 
-	"server/env"
-	"server/game"
-
 	"github.com/joho/godotenv"
+	"gitlab.fbk168.com/gamedevjp/alien/server/env"
+	"gitlab.fbk168.com/gamedevjp/alien/server/game"
 )
 
 type ENV struct {
@@ -27,7 +26,11 @@ type ENV struct {
 
 	RedisURL string `json:"RedisURL"`
 
+	APIURL string `json:"TransferURL"`
+
 	AccountEncode string `json:"AccountEncodeStr"`
+	ServerMod     string `json:"ServerMod"`
+	GameTypeID    string `json:"GameTypeID"`
 }
 
 func main() {
@@ -35,7 +38,7 @@ func main() {
 		log.Panicf("No [ .env ] file found...\n")
 	}
 
-	env := ENV{
+	config := ENV{
 		Maintain:             env.GetEnvAsBool("MAINTAIN"),
 		MaintainStartTime:    env.GetEnvAsString("MAINTAIN_START_TIME"),
 		MaintainFinishTime:   env.GetEnvAsString("MAINTAIN_FINISH_TIME"),
@@ -52,12 +55,16 @@ func main() {
 
 		RedisURL: env.GetEnvAsString("REDIS_URL"),
 
+		APIURL: env.GetEnvAsString("API_URL"),
+
 		AccountEncode: env.GetEnvAsString("ACCOUNT_ENCODE"),
+		ServerMod:     env.GetEnvAsString("SERVER_MOD"),
+		GameTypeID:    env.GetEnvAsString("GAME_TYPEID"),
 	}
 
-	jsonbyte, err := json.Marshal(env)
+	jsonbyte, err := json.Marshal(config)
 	if err != nil {
-		log.Panicf("error:", err)
+		log.Panicf("error: %s", err.Error())
 	}
 
 	game.NewGameServer(string(jsonbyte))

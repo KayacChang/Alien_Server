@@ -1,8 +1,9 @@
 package gamerule
 
 import (
-	attach "gitlab.fbk168.com/gamedevjp/backend-utility/utility/attach"
-	"gitlab.fbk168.com/gamedevjp/backend-utility/utility/igame"
+	attach "github.com/YWJSonic/ServerUtility/attach"
+	"github.com/YWJSonic/ServerUtility/igame"
+	"github.com/YWJSonic/ServerUtility/user"
 )
 
 // JackPartBonusx2Index ...
@@ -52,6 +53,18 @@ type Rule struct {
 // GetGameTypeID ...
 func (r *Rule) GetGameTypeID() string {
 	return r.GameTypeID
+}
+
+// GetGameAttach ...
+func (r *Rule) GetGameAttach(user *user.Info) map[string]interface{} {
+	jpatt := r.getJPFromAttach(user.IAttach)
+	return map[string]interface{}{
+		"PlayerID":            user.UserGameInfo.ID,
+		"Kind":                r.GameIndex,
+		"JackPartBonusPoolx2": jpatt.JackPartBonusx2.GetIValue(),
+		"JackPartBonusPoolx3": jpatt.JackPartBonusx3.GetIValue(),
+		"JackPartBonusPoolx5": jpatt.JackPartBonusx5.GetIValue(),
+	}
 }
 
 // GetBetMoney ...
@@ -165,10 +178,10 @@ func (r *Rule) GameRequest(config *igame.RuleRequest) *igame.RuleRespond {
 func (r *Rule) setJPFromAttach(betMoney int64, jP *jackPart) []*attach.Info {
 	JB2 := attach.NewInfo(int64(r.GameIndex), JackPartBonusx2Index, true)
 	JB2.SetIValue(jP.JackPartBonusx2.GetIValue() + int64(float32(betMoney)*r.JackPortTex[2]))
-	JB3 := attach.NewInfo(int64(r.GameIndex), JackPartBonusx2Index, true)
-	JB3.SetIValue(jP.JackPartBonusx2.GetIValue() + int64(float32(betMoney)*r.JackPortTex[1]))
-	JB5 := attach.NewInfo(int64(r.GameIndex), JackPartBonusx2Index, true)
-	JB5.SetIValue(jP.JackPartBonusx2.GetIValue() + int64(float32(betMoney)*r.JackPortTex[0]))
+	JB3 := attach.NewInfo(int64(r.GameIndex), JackPartBonusx3Index, true)
+	JB3.SetIValue(jP.JackPartBonusx3.GetIValue() + int64(float32(betMoney)*r.JackPortTex[1]))
+	JB5 := attach.NewInfo(int64(r.GameIndex), JackPartBonusx5Index, true)
+	JB5.SetIValue(jP.JackPartBonusx5.GetIValue() + int64(float32(betMoney)*r.JackPortTex[0]))
 	return []*attach.Info{JB2, JB3, JB5}
 }
 func (r *Rule) getJPFromAttach(att attach.IAttach) jackPart {

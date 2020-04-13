@@ -4,16 +4,17 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/YWJSonic/ServerUtility/cacheinfo"
+	"github.com/YWJSonic/ServerUtility/code"
+	"github.com/YWJSonic/ServerUtility/messagehandle"
 	"github.com/gomodule/redigo/redis"
-	"gitlab.fbk168.com/gamedevjp/backend-utility/utility/cacheinfo"
-	"gitlab.fbk168.com/gamedevjp/backend-utility/utility/code"
-	"gitlab.fbk168.com/gamedevjp/backend-utility/utility/messagehandle"
 )
 
 // Setting ...
 type Setting struct {
-	ConnectTimeout, ReadTimeout, WriteTimeout, CacheDeleteTime time.Duration
-	URL                                                        string
+	// ConnectTimeout, ReadTimeout, WriteTimeout time.Duration
+	CacheDeleteTime time.Duration
+	URL             string
 }
 
 // GameCache ICache
@@ -31,10 +32,10 @@ func (c *GameCache) GetCachePool() *redis.Pool {
 			MaxActive:   50,
 			Wait:        true,
 			Dial: func() (redis.Conn, error) {
-				c, err := redis.Dial("tcp", c.Setting.URL,
-					redis.DialConnectTimeout(c.Setting.ConnectTimeout),
-					redis.DialReadTimeout(c.Setting.ReadTimeout),
-					redis.DialWriteTimeout(c.Setting.WriteTimeout))
+				c, err := redis.Dial("tcp", c.Setting.URL)
+				// redis.DialConnectTimeout(c.Setting.ConnectTimeout),
+				// redis.DialReadTimeout(c.Setting.ReadTimeout),
+				// redis.DialWriteTimeout(c.Setting.WriteTimeout))
 				if err != nil {
 					messagehandle.ErrorLogPrintln("newCachePool-1", c, err)
 					return nil, fmt.Errorf("redis connection error: %s", err)

@@ -1,14 +1,14 @@
 package alienattach
 
-import (
-	attach "gitlab.fbk168.com/gamedevjp/backend-utility/utility/attach"
-)
+import "github.com/YWJSonic/ServerUtility/attach"
 
-// NewUserAttach ...
-func NewUserAttach(userID int64) *UserAttach {
+// NewAttach ...
+func NewAttach(attSetting Setting) attach.IAttach {
 	attach := &UserAttach{
-		userID:  userID,
-		dataMap: make(map[int64]map[int64]*attach.Info),
+		userIDStr: attSetting.UserIDStr,
+		kind:      attSetting.Kind,
+		db:        attSetting.DB,
+		dataMap:   make(map[int64]map[int64]*attach.Info),
 	}
 	// attach.InitData(userID)
 	return attach

@@ -2,7 +2,6 @@
 	"Version": "0.0.1",
 	"GameIndex": 7,
 	"IsAttachInit": true,
-	"GameTypeID": "8abd7f318e8f8d84ced118f3f0380be2",
 	"ServerDayPayDefault": 0,
 	"ServerDayPayLimit": 15000000,
 	"WinScoreLimit": 1000000,

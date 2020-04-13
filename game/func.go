@@ -3,13 +3,14 @@ package game
 import (
 	"encoding/json"
 
-	"server/game/gamerule"
+	"gitlab.fbk168.com/gamedevjp/alien/server/game/cache"
+	"gitlab.fbk168.com/gamedevjp/alien/server/game/gamerule"
 
-	"gitlab.fbk168.com/gamedevjp/backend-utility/utility/foundation"
-	"gitlab.fbk168.com/gamedevjp/backend-utility/utility/foundation/fileload"
-	"gitlab.fbk168.com/gamedevjp/backend-utility/utility/iserver"
-	"gitlab.fbk168.com/gamedevjp/backend-utility/utility/restfult"
-	"gitlab.fbk168.com/gamedevjp/backend-utility/utility/socket"
+	"github.com/YWJSonic/ServerUtility/foundation"
+	"github.com/YWJSonic/ServerUtility/foundation/fileload"
+	"github.com/YWJSonic/ServerUtility/iserver"
+	"github.com/YWJSonic/ServerUtility/restfult"
+	"github.com/YWJSonic/ServerUtility/socket"
 )
 
 // NewGameServer ...
@@ -25,10 +26,15 @@ func NewGameServer(jsStr string) {
 		panic(err)
 	}
 
+	cacheRedis := cache.Setting{
+		URL: baseSetting.RedisURL,
+	}
+
 	var gameserver = iserver.NewService()
 	var game = &Game{
 		IGameRule: gameRule,
 		Server:    gameserver,
+		Cache:     cache.NewCache(cacheRedis),
 		// ProtocolMap: protocol.NewProtocolMap(),
 	}
 	gameserver.Restfult = restfult.NewRestfultService()
@@ -40,9 +46,8 @@ func NewGameServer(jsStr string) {
 
 	// start DB service
 	setting := gameserver.Setting.DBSetting()
-	gameserver.LaunchDB("gameDB", setting)
-	gameserver.LaunchDB("logDB", setting)
-	gameserver.LaunchDB("payDB", setting)
+	gameserver.LaunchDB("gamedb", setting)
+	gameserver.LaunchDB("logdb", setting)
 
 	// start restful service
 	go gameserver.LaunchRestfult(game.RESTfulURLs())
