@@ -1,6 +1,7 @@
 package alienattach
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -130,11 +131,18 @@ func (us *UserAttach) Save() {
 			}
 		}
 	}
-	for _, quart := range quarys {
-		Rows, err := us.db.Query(quart)
 
+	ctx := context.TODO()
+	sqlConn, err := us.db.Conn(ctx)
+	defer sqlConn.Close()
+	if err != nil {
+		return
+	}
+
+	for _, quart := range quarys {
+		_, err := sqlConn.ExecContext(ctx, quart)
 		if err != nil {
-			fmt.Println(Rows, err)
+			fmt.Println("att set into sql error: ", err)
 		}
 	}
 }

@@ -209,6 +209,4 @@ func (g *Game) gameresult(w http.ResponseWriter, r *http.Request, ps httprouter.
 
 	g.EndOrder(proto.Token, order)
 	g.Server.HTTPResponse(w, resultMap, messagehandle.New())
-
-	fmt.Println("7 Time:", time.Since(st))
 }
