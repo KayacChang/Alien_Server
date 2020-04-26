@@ -93,7 +93,6 @@ func (g *Game) gameresult(w http.ResponseWriter, r *http.Request, ps httprouter.
 	var oldMoney int64
 	proto.InitData(r)
 
-	st := time.Now()
 	if proto.GameTypeID != g.IGameRule.GetGameTypeID() {
 		errMsg := messagehandle.New()
 		errMsg.ErrorCode = code.GameTypeError
@@ -142,11 +141,8 @@ func (g *Game) gameresult(w http.ResponseWriter, r *http.Request, ps httprouter.
 		return
 	}
 
-	fmt.Println("1 Time:", time.Since(st))
 	// get attach
 	user.LoadAttach()
-
-	fmt.Println("2 Time:", time.Since(st))
 	// get game result
 	RuleRequest := &igame.RuleRequest{
 		BetIndex: proto.BetIndex,
@@ -159,11 +155,9 @@ func (g *Game) gameresult(w http.ResponseWriter, r *http.Request, ps httprouter.
 		user.IAttach.SetAttach(att)
 	}
 
-	fmt.Println("3 Time:", time.Since(st))
 	user.IAttach.Save()
 	user.UserGameInfo.SumMoney(result.Totalwinscore - result.BetMoney)
 
-	fmt.Println("4 Time:", time.Since(st))
 	resultMap := make(map[string]interface{})
 	resultMap["totalwinscore"] = result.Totalwinscore
 	resultMap["playermoney"] = user.UserGameInfo.GetMoney()
@@ -183,7 +177,6 @@ func (g *Game) gameresult(w http.ResponseWriter, r *http.Request, ps httprouter.
 		resultMap["respin"] = result.GameResult["respin"]
 	}
 
-	fmt.Println("5 Time:", time.Since(st))
 	msg := foundation.JSONToString(resultMap)
 	msg = strings.ReplaceAll(msg, "\"", "\\\"")
 	errMsg := db.SetLog(
@@ -201,7 +194,6 @@ func (g *Game) gameresult(w http.ResponseWriter, r *http.Request, ps httprouter.
 		msg,
 	)
 
-	fmt.Println("6 Time:", time.Since(st))
 	if errMsg.ErrorCode != code.OK {
 		g.Server.HTTPResponse(w, resultMap, errMsg)
 		return
