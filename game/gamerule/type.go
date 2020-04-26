@@ -25,7 +25,7 @@ type jackPart struct {
 type Rule struct {
 	Version             string        `json:"Version"`             // game logic version
 	GameTypeID          string        `json:"GameTypeID"`          // game unique id
-	GameIndex           int           `json:"GameIndex"`           // game sort id
+	GameIndex           int64         `json:"GameIndex"`           // game sort id
 	WinScoreLimit       int64         `json:"WinScoreLimit"`       // game round win money limit
 	WinBetRateLimit     int64         `json:"WinBetRateLimit"`     // game round win rate limit
 	BetRate             []int64       `json:"BetRate"`             // bate money slice
@@ -48,6 +48,10 @@ type Rule struct {
 	JackPortTex         []float32     `json:"JackPortTex"`
 	JackPartWinRate     []int         `json:"JackPartWinRate"`
 	ResultRateArray     []int         `json:"ResultRateArray"`
+}
+
+func (r *Rule) GetGameIndex() int64 {
+	return r.GameIndex
 }
 
 // GetGameTypeID ...
